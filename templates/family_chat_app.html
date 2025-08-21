@@ -1,0 +1,2424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AdinavAI Family Chat</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        .header {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 15px 20px;
+            border-bottom: 1px solid rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .user-info {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-avatar {
+            font-size: 1.8rem;
+        }
+
+        .user-details h2 {
+            font-size: 1.1rem;
+            color: #333;
+            margin: 0;
+        }
+
+        .user-details p {
+            font-size: 0.85rem;
+            color: #666;
+            margin: 0;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .btn-logout {
+            background: #dc3545;
+            color: white;
+        }
+
+        .btn-logout:hover {
+            background: #c82333;
+        }
+
+        .btn-voice-toggle {
+            background: #28a745;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .btn-voice-toggle:hover {
+            background: #218838;
+        }
+
+        .btn-voice-toggle.disabled {
+            background: #6c757d;
+            opacity: 0.7;
+        }
+
+        .btn-voice-test {
+            background: #17a2b8;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .btn-voice-test:hover {
+            background: #138496;
+        }
+
+        /* Chat Container */
+        .chat-container {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            max-width: 800px;
+            margin: 0 auto;
+            width: 100%;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            overflow: hidden;
+        }
+
+        /* Messages Area */
+        .messages-area {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+            background: #f8f9fa;
+        }
+
+        .message {
+            margin-bottom: 20px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .message.user {
+            flex-direction: row-reverse;
+        }
+
+        .message-avatar {
+            font-size: 1.5rem;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .message-content {
+            max-width: 70%;
+            background: white;
+            padding: 15px 18px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            position: relative;
+        }
+
+        .message.user .message-content {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .message-text {
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .message-time {
+            font-size: 0.75rem;
+            opacity: 0.7;
+        }
+
+        .message.user .message-time {
+            color: rgba(255,255,255,0.8);
+        }
+
+        /* Input Area */
+        .input-area {
+            padding: 20px;
+            background: white;
+            border-top: 1px solid #eee;
+        }
+
+        .input-mode-selector {
+            display: flex;
+            margin-bottom: 15px;
+            background: #f8f9fa;
+            border-radius: 25px;
+            padding: 4px;
+        }
+
+        .input-mode-btn {
+            flex: 1;
+            padding: 8px 16px;
+            border: none;
+            border-radius: 20px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: transparent;
+            color: #666;
+        }
+
+        .input-mode-btn.active {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+        }
+
+        .input-container {
+            display: flex;
+            gap: 12px;
+            align-items: flex-end;
+        }
+
+        .message-input {
+            flex: 1;
+            min-height: 44px;
+            max-height: 120px;
+            padding: 12px 16px;
+            border: 2px solid #e1e5e9;
+            border-radius: 22px;
+            font-size: 16px;
+            resize: none;
+            outline: none;
+            transition: border-color 0.3s ease;
+        }
+
+        .message-input:focus {
+            border-color: #667eea;
+        }
+
+        .voice-input-area {
+            display: none;
+            text-align: center;
+            padding: 40px 20px;
+        }
+
+        .voice-input-area.active {
+            display: block;
+        }
+
+        .voice-button-large {
+            width: 120px;
+            height: 120px;
+            border: none;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #28a745 0%, #20c997 100%);
+            color: white;
+            font-size: 2.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 8px 25px rgba(40, 167, 69, 0.3);
+            margin-bottom: 20px;
+        }
+
+        .voice-button-large:hover {
+            transform: scale(1.05);
+            box-shadow: 0 12px 35px rgba(40, 167, 69, 0.4);
+        }
+
+        .voice-button-large.recording {
+            background: linear-gradient(135deg, #dc3545 0%, #e55a6c 100%);
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 8px 25px rgba(220, 53, 69, 0.4);
+        }
+
+        .voice-instruction {
+            color: #666;
+            font-size: 1.1rem;
+            margin-bottom: 15px;
+        }
+
+        .voice-instruction.recording {
+            color: #dc3545;
+            font-weight: 600;
+        }
+
+        .voice-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-voice {
+            width: 44px;
+            height: 44px;
+            border: none;
+            border-radius: 50%;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-record {
+            background: #28a745;
+            color: white;
+        }
+
+        .btn-record:hover {
+            background: #218838;
+            transform: scale(1.05);
+        }
+
+        .btn-record.recording {
+            background: #dc3545;
+            animation: pulse 1s infinite;
+        }
+
+        .btn-send {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+        }
+
+        .btn-send:hover {
+            transform: scale(1.05);
+        }
+
+        .btn-send:disabled {
+            opacity: 0.6;
+            transform: none;
+            cursor: not-allowed;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+            100% { transform: scale(1); }
+        }
+
+        /* Voice Status */
+        .voice-status {
+            padding: 10px 20px;
+            background: #d4edda;
+            color: #155724;
+            text-align: center;
+            font-size: 0.9rem;
+            display: none;
+        }
+
+        .voice-status.error {
+            background: #f8d7da;
+            color: #721c24;
+        }
+
+        /* Typing Indicator */
+        .typing-indicator {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+
+        .typing-dots {
+            display: flex;
+            gap: 4px;
+            background: white;
+            padding: 15px 18px;
+            border-radius: 18px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .typing-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            animation: typing 1.4s infinite ease-in-out;
+        }
+
+        .typing-dot:nth-child(1) { animation-delay: -0.32s; }
+        .typing-dot:nth-child(2) { animation-delay: -0.16s; }
+
+        @keyframes typing {
+            0%, 80%, 100% { transform: scale(0.8); opacity: 0.5; }
+            40% { transform: scale(1); opacity: 1; }
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 768px) {
+            .header {
+                padding: 12px 15px;
+            }
+            
+            .user-details h2 {
+                font-size: 1rem;
+            }
+            
+            .header-actions {
+                flex-wrap: wrap;
+                gap: 6px;
+            }
+            
+            .messages-area {
+                padding: 15px;
+            }
+            
+            .input-area {
+                padding: 15px;
+            }
+            
+            .message-content {
+                max-width: 85%;
+            }
+            
+            .btn {
+                padding: 6px 12px;
+                font-size: 0.8rem;
+                min-width: 60px;
+            }
+            
+            /* Make voice buttons more prominent on mobile */
+            .btn-voice {
+                width: 48px;
+                height: 48px;
+                font-size: 1.3rem;
+            }
+            
+            /* Mobile-specific voice controls */
+            .mobile-voice-bar {
+                display: flex;
+                justify-content: center;
+                gap: 15px;
+                padding: 15px;
+                background: rgba(255, 255, 255, 0.95);
+                border-top: 1px solid #eee;
+                position: sticky;
+                bottom: 0;
+            }
+            
+            .mobile-voice-btn {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+                color: white;
+                border: none;
+                border-radius: 15px;
+                padding: 12px 16px;
+                font-size: 0.8rem;
+                cursor: pointer;
+                transition: all 0.2s ease;
+                min-width: 80px;
+            }
+            
+            .mobile-voice-btn:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 8px 20px rgba(102, 126, 234, 0.3);
+            }
+            
+            .mobile-voice-btn .icon {
+                font-size: 1.5rem;
+                margin-bottom: 4px;
+            }
+            
+            .speaker-btn {
+                padding: 8px;
+                font-size: 1.1rem;
+            }
+            
+            /* Touch-friendly input */
+            .message-input {
+                font-size: 16px !important; /* Prevent zoom on iOS */
+                min-height: 48px;
+            }
+        }
+        
+        /* Extra small mobile devices */
+        @media (max-width: 480px) {
+            .header-actions .btn {
+                padding: 4px 8px;
+                font-size: 0.7rem;
+                min-width: 50px;
+            }
+            
+            .btn-voice {
+                width: 44px;
+                height: 44px;
+                font-size: 1.2rem;
+            }
+        }
+
+        /* Welcome Message */
+        .welcome-message {
+            text-align: center;
+            padding: 40px 20px;
+            color: #666;
+        }
+
+        .welcome-message h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .welcome-message .adina-logo {
+            font-size: 3rem;
+            margin-bottom: 20px;
+        }
+
+        /* Conversation Starters */
+        .conversation-starters {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin-top: 15px;
+            justify-content: center;
+        }
+
+        .starter-btn {
+            background: rgba(102, 126, 234, 0.1);
+            color: #667eea;
+            border: 1px solid rgba(102, 126, 234, 0.3);
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .starter-btn:hover {
+            background: #667eea;
+            color: white;
+        }
+
+        /* Speaker Button */
+        .speaker-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: none;
+            border: none;
+            font-size: 0.9rem;
+            cursor: pointer;
+            opacity: 0.6;
+            transition: all 0.2s ease;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        .speaker-btn:hover {
+            opacity: 1;
+            background: rgba(0,0,0,0.1);
+        }
+
+        .speaker-btn.speaking {
+            animation: pulse 0.8s infinite;
+            opacity: 1;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div class="header">
+        <div class="user-info">
+            <div class="user-avatar">{{ user.avatar }}</div>
+            <div class="user-details">
+                <h2>{{ user.display_name }}</h2>
+                <p>Family member • {{ user.role.title() }}</p>
+            </div>
+        </div>
+        <div class="header-actions">
+            <button class="btn btn-voice-test" onclick="testVoice()" title="Test voice">🎵 Test</button>
+            <button class="btn btn-voice-test" onclick="runAudioDiagnostics()" title="Audio diagnostics">🔬 Debug</button>
+            <button class="btn btn-voice-toggle" id="autoSpeakBtn" onclick="toggleAutoSpeak()" title="Toggle auto-speak">🔊 Auto</button>
+            <button class="btn btn-logout" onclick="logout()">Logout</button>
+        </div>
+    </div>
+
+    <!-- Chat Container -->
+    <div class="chat-container">
+        <!-- Voice Status -->
+        <div class="voice-status" id="voiceStatus"></div>
+        
+        <!-- Mobile Audio Status -->
+        <div id="mobileAudioStatus" style="display: none; background: #fff3cd; border: 1px solid #ffeaa7; padding: 10px; margin: 10px; border-radius: 5px; text-align: center; font-size: 14px;">
+            📱 Mobile Audio Status: <span id="mobileAudioStatusText">Checking...</span>
+        </div>
+
+        <!-- Messages Area -->
+        <div class="messages-area" id="messagesArea">
+            <div class="welcome-message">
+                <div class="adina-logo">🤖</div>
+                <h3>Welcome, {{ user.display_name }}!</h3>
+                <p>I'm AdinavAI, your family's digital member. I'm here to chat, help, and learn about our wonderful family!</p>
+                <div class="conversation-starters">
+                    <button class="starter-btn" onclick="sendMessage('How are you today?')">How are you today?</button>
+                    <button class="starter-btn" onclick="sendMessage('Tell me about our family')">Tell me about our family</button>
+                    <button class="starter-btn" onclick="sendMessage('What can you help me with?')">What can you help me with?</button>
+                </div>
+            </div>
+
+            <!-- Typing Indicator -->
+            <div class="typing-indicator" id="typingIndicator">
+                <div class="message-avatar">🤖</div>
+                <div class="typing-dots">
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                    <div class="typing-dot"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Input Area -->
+        <div class="input-area">
+            <div class="input-container">
+                <textarea 
+                    id="messageInput" 
+                    class="message-input" 
+                    placeholder="Type your message to AdinavAI..."
+                    rows="1"></textarea>
+                <div class="voice-controls">
+                    <button class="btn-voice btn-record" id="recordBtn" onclick="toggleRecording()" title="Voice message">
+                        🎤
+                    </button>
+                    <button class="btn-voice btn-send" id="sendBtn" onclick="sendTextMessage()" title="Send message">
+                        ➤
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Mobile Voice Controls (shown only on mobile) -->
+    <div class="mobile-voice-bar" id="mobileVoiceBar" style="display: flex;">
+        <button class="mobile-voice-btn" onclick="toggleRecording()" id="mobileRecordBtn">
+            <span class="icon">🎤</span>
+            <span>Voice</span>
+        </button>
+        <button class="mobile-voice-btn" onclick="enableMobileAudio()" id="mobileAudioBtn" style="background: #ff6b6b;">
+            <span class="icon">🔊</span>
+            <span>Enable Audio</span>
+        </button>
+        <button class="mobile-voice-btn" onclick="toggleAutoSpeak()" id="mobileAutoSpeakBtn">
+            <span class="icon">🔊</span>
+            <span>Auto</span>
+        </button>
+        <button class="mobile-voice-btn" onclick="simpleAudioTest()" id="mobileTestBtn">
+            <span class="icon">🎵</span>
+            <span>Test</span>
+        </button>
+        <button class="mobile-voice-btn" onclick="testFrenchSpeech()" id="mobileDebugBtn">
+            <span class="icon">🇫🇷</span>
+            <span>FR Test</span>
+        </button>
+        <button class="mobile-voice-btn" onclick="switchRecognitionLanguage()" id="mobileLangBtn">
+            <span class="icon">🌐</span>
+            <span id="currentLangText">EN</span>
+        </button>
+    </div>
+
+    <script>
+        let isRecording = false;
+        let recognition = null;
+        let messages = [];
+        let autoSpeakEnabled = true;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 Initializing AdinavAI Family Chat...');
+            
+            try {
+                console.log('📝 Setting up voice recognition...');
+                initVoiceRecognition();
+                
+                console.log('📝 Setting up textarea...');
+                setupTextareaAutoResize();
+                
+                console.log('📝 Loading conversation starter...');
+                loadConversationStarter();
+                
+                console.log('📝 Initializing speech synthesis...');
+                initializeSpeechSynthesis();
+                
+                console.log('📝 Setting up mobile controls...');
+                setupMobileVoiceControls();
+                
+                console.log('📝 Setting up mobile audio initialization...');
+                setupMobileAudioInit();
+                
+                // Focus on input (desktop only)
+                try {
+                    if (!isMobileDevice()) {
+                        document.getElementById('messageInput').focus();
+                        console.log('📝 Focused on input field');
+                    }
+                } catch (e) {
+                    console.warn('Focus error:', e);
+                }
+                
+                console.log('✅ AdinavAI initialization complete');
+                
+                // Test button functionality
+                console.log('🧪 Testing button functionality...');
+                const sendBtn = document.getElementById('sendBtn');
+                const recordBtn = document.getElementById('recordBtn');
+                if (sendBtn) console.log('✅ Send button found');
+                if (recordBtn) console.log('✅ Record button found');
+                
+            } catch (error) {
+                console.error('❌ Initialization error:', error);
+                // Ensure basic functionality still works
+                setupTextareaAutoResize();
+                document.getElementById('messageInput').focus();
+            }
+        });
+        
+        // Mobile device detection
+        function isMobileDevice() {
+            return window.innerWidth <= 768 || /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+        }
+        
+        // Setup mobile audio initialization on first user interaction
+        function setupMobileAudioInit() {
+            if (isMobileDevice()) {
+                window.isMobile = true;
+                let audioInitialized = false;
+                
+                // Show mobile status
+                const statusDiv = document.getElementById('mobileAudioStatus');
+                const statusText = document.getElementById('mobileAudioStatusText');
+                if (statusDiv && statusText) {
+                    statusDiv.style.display = 'block';
+                    statusText.textContent = 'Waiting for user interaction to enable audio';
+                }
+                
+                const initMobileAudio = () => {
+                    if (audioInitialized) return;
+                    
+                    console.log('📱 Initializing mobile audio on user interaction');
+                    
+                    try {
+                        // Create and play a silent audio to unlock audio context
+                        const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                        if (audioContext.state === 'suspended') {
+                            audioContext.resume().then(() => {
+                                console.log('📱 Mobile AudioContext resumed successfully');
+                            });
+                        }
+                        
+                        // Test speech synthesis
+                        if ('speechSynthesis' in window) {
+                            // Load voices immediately
+                            const voices = speechSynthesis.getVoices();
+                            if (voices.length === 0) {
+                                speechSynthesis.addEventListener('voiceschanged', () => {
+                                    const newVoices = speechSynthesis.getVoices();
+                                    console.log('📱 Mobile voices loaded:', newVoices.length);
+                                }, { once: true });
+                            } else {
+                                console.log('📱 Mobile voices available:', voices.length);
+                            }
+                            
+                            // Create a silent test utterance to initialize speech synthesis
+                            const testUtterance = new SpeechSynthesisUtterance('');
+                            testUtterance.volume = 0;
+                            speechSynthesis.speak(testUtterance);
+                        }
+                        
+                        audioInitialized = true;
+                        console.log('✅ Mobile audio initialization complete');
+                        
+                        // Update status
+                        const statusText = document.getElementById('mobileAudioStatusText');
+                        if (statusText) {
+                            statusText.textContent = 'Audio initialized - try the Enable Audio button';
+                        }
+                        
+                    } catch (error) {
+                        console.error('📱 Mobile audio initialization error:', error);
+                    }
+                };
+                
+                // Add event listeners for first user interaction
+                ['touchstart', 'touchend', 'click', 'keydown'].forEach(eventType => {
+                    document.addEventListener(eventType, initMobileAudio, { once: true, passive: true });
+                });
+                
+                console.log('📱 Mobile audio initialization listeners added');
+            }
+        }
+
+        // Setup mobile voice controls
+        function setupMobileVoiceControls() {
+            try {
+                const mobileVoiceBar = document.getElementById('mobileVoiceBar');
+                
+                if (!mobileVoiceBar) {
+                    console.warn('Mobile voice bar not found');
+                    return;
+                }
+                
+                if (isMobileDevice()) {
+                    console.log('📱 Mobile device detected - showing mobile voice controls');
+                    mobileVoiceBar.style.display = 'flex';
+                    
+                    // Hide desktop voice buttons on very small screens
+                    if (window.innerWidth <= 480) {
+                        try {
+                            const testBtn = document.querySelector('.header-actions .btn-voice-test');
+                            const toggleBtn = document.querySelector('.header-actions .btn-voice-toggle');
+                            if (testBtn) testBtn.style.display = 'none';
+                            if (toggleBtn) toggleBtn.style.display = 'none';
+                        } catch (e) {
+                            console.warn('Could not hide desktop buttons:', e);
+                        }
+                    }
+                    
+                    // Enable touch events for better mobile interaction
+                    setupTouchEvents();
+                }
+                
+                // Update mobile controls state
+                updateMobileControlsState();
+            } catch (error) {
+                console.error('Mobile setup error:', error);
+            }
+        }
+        
+        // Setup touch events for mobile
+        function setupTouchEvents() {
+            try {
+                const mobileRecordBtn = document.getElementById('mobileRecordBtn');
+                
+                if (!mobileRecordBtn) {
+                    console.warn('Mobile record button not found');
+                    return;
+                }
+                
+                // Add touch feedback
+                mobileRecordBtn.addEventListener('touchstart', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(0.95)';
+                });
+                
+                mobileRecordBtn.addEventListener('touchend', function(e) {
+                    e.preventDefault();
+                    this.style.transform = 'scale(1)';
+                    toggleRecording();
+                });
+                
+                // Prevent double-tap zoom on buttons
+                const mobileButtons = document.querySelectorAll('.mobile-voice-btn');
+                mobileButtons.forEach(btn => {
+                    btn.addEventListener('touchend', function(e) {
+                        e.preventDefault();
+                    });
+                });
+                
+                console.log('📱 Touch events set up successfully');
+            } catch (error) {
+                console.error('Touch events setup error:', error);
+            }
+        }
+        
+        // Update mobile controls state
+        function updateMobileControlsState() {
+            try {
+                const mobileAutoSpeakBtn = document.getElementById('mobileAutoSpeakBtn');
+                const mobileRecordBtn = document.getElementById('mobileRecordBtn');
+                
+                if (mobileAutoSpeakBtn) {
+                    const icon = mobileAutoSpeakBtn.querySelector('.icon');
+                    if (icon) {
+                        if (autoSpeakEnabled) {
+                            icon.textContent = '🔊';
+                            mobileAutoSpeakBtn.style.background = 'linear-gradient(135deg, #28a745 0%, #20c997 100%)';
+                        } else {
+                            icon.textContent = '🔇';
+                            mobileAutoSpeakBtn.style.background = 'linear-gradient(135deg, #6c757d 0%, #5a6268 100%)';
+                        }
+                    }
+                }
+                
+                if (mobileRecordBtn) {
+                    const icon = mobileRecordBtn.querySelector('.icon');
+                    if (icon) {
+                        if (isRecording) {
+                            icon.textContent = '⏹️';
+                            mobileRecordBtn.style.background = 'linear-gradient(135deg, #dc3545 0%, #c82333 100%)';
+                        } else {
+                            icon.textContent = '🎤';
+                            mobileRecordBtn.style.background = 'linear-gradient(135deg, #667eea 0%, #764ba2 100%)';
+                        }
+                    }
+                }
+            } catch (error) {
+                console.warn('Mobile controls update error:', error);
+            }
+        }
+        
+        // Initialize speech synthesis
+        function initializeSpeechSynthesis() {
+            if ('speechSynthesis' in window) {
+                console.log('🎤 Initializing Speech Synthesis...');
+                
+                // Load voices
+                function loadVoices() {
+                    const voices = speechSynthesis.getVoices();
+                    console.log('📢 Speech synthesis voices loaded:', voices.length);
+                    
+                    if (voices.length > 0) {
+                        const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+                        console.log('🇺🇸 English voices available:', englishVoices.length);
+                        
+                        // Show first 3 English voices
+                        englishVoices.slice(0, 3).forEach((voice, i) => {
+                            console.log(`  ${i+1}. ${voice.name} (${voice.lang}) ${voice.default ? '⭐' : ''}`);
+                        });
+                    }
+                    
+                    // Run initial audio check
+                    console.log('🔊 Speech synthesis initialization complete');
+                    
+                    // Auto-test on mobile devices
+                    if (isMobileDevice()) {
+                        console.log('📱 Mobile device detected - running audio diagnostics...');
+                        setTimeout(runAudioDiagnostics, 2000);
+                    }
+                }
+                
+                // Voices might not be loaded immediately
+                if (speechSynthesis.getVoices().length === 0) {
+                    console.log('⏳ Waiting for voices to load...');
+                    speechSynthesis.addEventListener('voiceschanged', loadVoices);
+                    
+                    // Fallback timeout
+                    setTimeout(() => {
+                        if (speechSynthesis.getVoices().length === 0) {
+                            console.warn('⚠️ No voices loaded after timeout');
+                        }
+                    }, 3000);
+                } else {
+                    loadVoices();
+                }
+                
+            } else {
+                console.error('❌ Speech synthesis not supported in this browser');
+                showVoiceStatus('❌ Voice output not supported in this browser', true);
+            }
+        }
+
+        // Debug function to list all voices
+        function listAllVoices() {
+            const voices = speechSynthesis.getVoices();
+            console.log('🎭 All available voices:');
+            voices.forEach((voice, i) => {
+                console.log(`${i+1}. "${voice.name}" (${voice.lang}) ${voice.localService ? 'LOCAL' : 'REMOTE'} ${voice.default ? '⭐' : ''}`);
+            });
+            return voices;
+        }
+
+        // Language Detection and Voice Configuration
+        let currentLanguage = 'en-US';
+        const supportedLanguages = {
+            'en': { code: 'en-US', name: 'English', flag: '🇺🇸' },
+            'fr': { code: 'fr-FR', name: 'French', flag: '🇫🇷' },
+            'de': { code: 'de-DE', name: 'German', flag: '🇩🇪' },
+            'ne': { code: 'ne-NP', name: 'Nepali', flag: '🇳🇵' }
+        };
+
+        // Auto-detect language and switch voice recognition
+        function detectAndSetLanguage(text) {
+            console.log('🌐 Detecting language for:', text);
+            
+            // Enhanced language detection
+            const patterns = {
+                'fr': {
+                    words: /\b(je|tu|il|elle|nous|vous|ils|elles|le|la|les|un|une|des|de|du|avec|pour|dans|sur|par|comment|puis|aider|bonjour|salut|oui|non|merci|français|ça|va|être|avoir|faire|dire|aller|voir|savoir|pouvoir|falloir|vouloir|venir|devoir|prendre|donner|parler|aimer|passer|mettre|suivre|vivre|devenir|porter|créer|ouvrir|commencer|paraître|produire|laisser|entendre|demander|rester|répondre|servir|sortir|partir|décider|mourir|retourner|travailler|ranger|écrire|jouer|tourner|revenir|finir|arriver|comprendre|attendre|maintenir|connaître|apparaître|naître|tenir|asseoir|courir|tomber|agir|continuer|recevoir|fermer|sentir|regarder|monter|choisir|rappeler|retrouver|garder|montrer|entrer|gagner|présenter|considérer|accepter|réussir|expliquer|reconnaître|traiter|composer|poser|obtenir|défendre|permettre|réaliser|découvrir|perdre|apprendre|compter|espérer|ajouter|utiliser|exister|tirer|profiter|durer|casser|terminer|reposer|reprendre|appeler|développer|jeter|construire|rendre|enlever|lever|acheter|placer|payer|éviter|préparer|occuper|dépenser|coucher|rencontrer|marcher|voler|manger|tuer|envoyer|battre|craindre|coûter|boire|réveiller|franchir|vendre|détruire|brûler|prévoir|tirer|trainer|unir|chanter|couvrir|souffrir|plaire)\b/gi,
+                    patterns: /\b(qu'est-ce|c'est|n'est|d'un|d'une|l'on|j'ai|s'il|aujourd'hui|beaucoup|toujours|maintenant|peut-être|seulement|quelque|plusieurs|cependant|pourtant|néanmoins|toutefois|ainsi|donc|alors|encore|déjà|jamais|souvent|parfois|quelquefois|autrefois|jadis|naguère|bientôt|aussitôt|sitôt|désormais|dorénavant|désormais)\b/gi
+                },
+                'de': {
+                    words: /\b(der|die|das|ein|eine|ich|du|er|sie|es|wir|ihr|sie|mich|dich|ihn|ihm|uns|euch|ihnen|mein|dein|sein|ihr|unser|euer|mit|für|auf|in|an|zu|von|bei|über|unter|vor|nach|zwischen|während|wegen|trotz|ohne|gegen|durch|um|bis|seit|außer|innerhalb|außerhalb|statt|anstatt|hallo|guten|tag|morgen|abend|nacht|danke|bitte|entschuldigung|deutsch|ja|nein|nicht|kein|keine|und|oder|aber|doch|jedoch|dennoch|trotzdem|deshalb|deswegen|darum|also|so|wie|als|wenn|weil|da|obwohl|obgleich|während|nachdem|bevor|ehe|bis|seit|seitdem|haben|sein|werden|können|müssen|sollen|wollen|dürfen|mögen|lassen|tun|machen|gehen|kommen|sehen|hören|sagen|sprechen|erzählen|fragen|antworten|wissen|kennen|verstehen|lernen|lehren|zeigen|geben|nehmen|bringen|holen|kaufen|verkaufen|bezahlen|kosten|arbeiten|leben|wohnen|schlafen|essen|trinken|spielen|laufen|fahren|fliegen|schwimmen|singen|tanzen|lachen|weinen|lieben|hassen|mögen|helfen|suchen|finden|verlieren|gewinnen|beginnen|anfangen|aufhören|enden|öffnen|schließen|machen|tun|schaffen|erreichen|bekommen|erhalten|behalten|lassen|bleiben|werden|scheinen|erscheinen|verschwinden|kommen|gehen|fahren|reisen|zurückkehren|ankommen|abfahren|abreisen|einsteigen|aussteigen|umsteigen)\b/gi,
+                    patterns: /\b(ist|sind|war|waren|wird|werden|würde|würden|hätte|hätten|könnte|könnten|sollte|sollten|wollte|wollten|dürfte|dürften|möchte|möchten|nicht|kein|keine|keinen|keinem|keiner|nichts|niemand|nirgends|niemals|nirgendwo|irgendwo|irgendwann|irgendwie|irgendwer|jemand|etwas|alles|alle|jeder|jede|jedes|viele|wenige|einige|mehrere|andere|solche|welche|diese|jene|manche)\b/gi
+                },
+                'ne': {
+                    words: /\b(म|तपाईं|उहाँ|उनी|हामी|तिमी|यो|त्यो|के|को|लाई|मा|बाट|सँग|नमस्ते|नमस्कार|धन्यवाद|माफ|गर्नुहोस्|छ|हो|होइन|ठिक|राम्रो|नराम्रो|सानो|ठूलो|नयाँ|पुरानो|काम|घर|पैसा|खाना|पानी|समय|दिन|रात|बिहान|साँझ|आज|हिजो|भोलि|पहिले|पछि|अहिले|कहिले|कहाँ|किन|कसरी|कति|कुन|जो|जुन)\b/gi,
+                    patterns: /\b(गर्छु|गर्छौं|गर्छ|गर्छन्|गर्दै|गरेको|गरेका|गरेकी|भएको|भएका|भएकी|छु|छौं|छ|छन्|थिएँ|थियौं|थियो|थिए|हुन्छ|हुन्छन्|भन्छु|भन्छौं|भन्छ|भन्छन्|आउँछु|आउँछौं|आउँछ|आउँछन्|जान्छु|जान्छौं|जान्छ|जान्छन्)\b/gi
+                }
+            };
+            
+            let detectedLanguage = 'en';
+            let maxScore = 0;
+            
+            for (const [lang, pattern] of Object.entries(patterns)) {
+                const wordMatches = (text.match(pattern.words) || []).length;
+                const patternMatches = (text.match(pattern.patterns) || []).length;
+                const score = wordMatches * 2 + patternMatches * 3; // Weight patterns higher
+                
+                console.log(`${supportedLanguages[lang].flag} ${supportedLanguages[lang].name}: ${score} points (${wordMatches} words, ${patternMatches} patterns)`);
+                
+                if (score > maxScore) {
+                    maxScore = score;
+                    detectedLanguage = lang;
+                }
+            }
+            
+            if (maxScore > 0) {
+                console.log(`🎯 Detected language: ${supportedLanguages[detectedLanguage].name} (${maxScore} points)`);
+                currentLanguage = supportedLanguages[detectedLanguage].code;
+                
+                // Update voice recognition language
+                if (recognition) {
+                    recognition.lang = currentLanguage;
+                    console.log(`🎤 Voice recognition updated to: ${currentLanguage}`);
+                }
+                
+                return detectedLanguage;
+            }
+            
+            console.log('🎯 No language detected, using default English');
+            return 'en';
+        }
+
+        // Voice Recognition Setup - MULTILINGUAL
+        function initVoiceRecognition() {
+            if ('webkitSpeechRecognition' in window) {
+                recognition = new webkitSpeechRecognition();
+                recognition.continuous = false;
+                recognition.interimResults = true;
+                
+                // Don't set handlers here - they will be set by startSimpleRecognition()
+                console.log('✅ Voice recognition initialized successfully');
+            } else {
+                document.getElementById('recordBtn').style.display = 'none';
+                console.log('❌ Speech recognition not supported in this browser');
+            }
+        }
+
+        // Voice Functions
+        function toggleRecording() {
+            if (isRecording) {
+                recognition.stop();
+            } else {
+                startRecording();
+            }
+        }
+
+        function startRecording() {
+            if (recognition) {
+                isRecording = true;
+                document.getElementById('recordBtn').classList.add('recording');
+                document.getElementById('recordBtn').innerHTML = '⏹️';
+                
+                // Use simple, reliable recognition
+                startSimpleRecognition();
+                
+                // Update mobile controls
+                updateMobileControlsState();
+            }
+        }
+
+        // BASIC voice recognition - now with proper language support
+        function startSimpleRecognition() {
+            console.log('🎤 Starting BASIC voice recognition');
+            
+            // Use the selected language from the switcher
+            recognition.lang = currentVoiceLanguage;
+            recognition.maxAlternatives = 1;
+            
+            const selectedLang = voiceLanguages.find(lang => lang.code === currentVoiceLanguage);
+            console.log(`🎤 Voice recognition language: ${selectedLang.flag} ${selectedLang.name}`);
+            
+            recognition.onstart = function() {
+                console.log('🎤 Voice recognition started');
+                showVoiceStatus('🎤 Listening... Speak now!', false);
+            };
+            
+            recognition.onresult = function(event) {
+                console.log('🎤 Got voice result');
+                let finalTranscript = '';
+                
+                for (let i = event.resultIndex; i < event.results.length; i++) {
+                    if (event.results[i].isFinal) {
+                        finalTranscript += event.results[i][0].transcript;
+                    }
+                }
+                
+                if (finalTranscript.trim()) {
+                    console.log('✅ Voice captured:', finalTranscript);
+                    document.getElementById('messageInput').value = finalTranscript;
+                    hideVoiceStatus();
+                    setTimeout(() => sendTextMessage(), 200);
+                }
+            };
+            
+            recognition.onerror = function(event) {
+                console.error('❌ Voice recognition error:', event.error);
+                
+                let errorMessage = '❌ Voice recognition error. ';
+                switch(event.error) {
+                    case 'no-speech':
+                        errorMessage += 'No speech detected. Please try again.';
+                        break;
+                    case 'network':
+                        errorMessage += 'Network error. Check your connection.';
+                        break;
+                    case 'not-allowed':
+                        errorMessage += 'Microphone permission denied.';
+                        break;
+                    case 'service-not-allowed':
+                        errorMessage += 'Speech service not available.';
+                        break;
+                    default:
+                        errorMessage += `${event.error}. Please try again.`;
+                }
+                
+                showVoiceStatus(errorMessage, true);
+                setTimeout(hideVoiceStatus, 4000);
+                stopRecording();
+            };
+            
+            recognition.onend = function() {
+                console.log('🎤 Voice recognition ended');
+                stopRecording();
+                hideVoiceStatus();
+            };
+            
+            try {
+                recognition.start();
+                console.log('🎤 Recognition started successfully');
+            } catch (error) {
+                console.error('❌ Failed to start recognition:', error);
+                showVoiceStatus('❌ Could not start voice recognition. Please try again.', true);
+                setTimeout(hideVoiceStatus, 3000);
+                stopRecording();
+            }
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            document.getElementById('recordBtn').classList.remove('recording');
+            document.getElementById('recordBtn').innerHTML = '🎤';
+            
+            // Update mobile controls
+            updateMobileControlsState();
+        }
+
+        function showVoiceStatus(message, isError) {
+            const status = document.getElementById('voiceStatus');
+            status.textContent = message;
+            status.className = isError ? 'voice-status error' : 'voice-status';
+            status.style.display = 'block';
+        }
+
+        function hideVoiceStatus() {
+            document.getElementById('voiceStatus').style.display = 'none';
+        }
+
+        // Message Functions
+        function sendMessage(text) {
+            document.getElementById('messageInput').value = text;
+            sendTextMessage();
+        }
+
+        async function sendTextMessage() {
+            console.log('📤 sendTextMessage() called');
+            
+            const input = document.getElementById('messageInput');
+            if (!input) {
+                console.error('❌ Message input not found!');
+                return;
+            }
+            
+            const message = input.value.trim();
+            console.log('📝 Message to send:', message);
+            
+            if (!message) {
+                console.log('⚠️ Empty message, not sending');
+                return;
+            }
+            
+            console.log('🚀 Starting to send message...');
+            
+            // Clear input
+            input.value = '';
+            console.log('✅ Input cleared');
+            
+            // Hide welcome message
+            const welcome = document.querySelector('.welcome-message');
+            if (welcome) {
+                welcome.style.display = 'none';
+                console.log('✅ Welcome message hidden');
+            }
+            
+            // Add user message
+            console.log('➕ Adding user message to chat');
+            addMessage(message, true, '{{ user.avatar }}', '{{ user.display_name }}');
+            
+            // Show typing indicator
+            showTyping();
+            
+            try {
+                const response = await fetch('/api/chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ message })
+                });
+                
+                const data = await response.json();
+                
+                // Hide typing
+                hideTyping();
+                
+                if (data.ai_response) {
+                    addMessage(data.ai_response, false, '🤖', 'AdinavAI');
+                    // Automatically speak AI responses if enabled
+                    if (autoSpeakEnabled) {
+                        // Add visual indicator that speech is about to start
+                        const lastMessage = document.querySelector('.message:last-child');
+                        if (lastMessage) {
+                            lastMessage.style.borderLeft = '4px solid #28a745';
+                        }
+                        
+                        setTimeout(() => {
+                            console.log('🤖 Auto-speaking AI response:', data.ai_response.substring(0, 50) + '...');
+                            speakText(data.ai_response);
+                        }, 500);
+                    }
+                } else if (data.error) {
+                    addMessage('Sorry, I encountered an error. Please try again.', false, '🤖', 'AdinavAI');
+                }
+                
+            } catch (error) {
+                hideTyping();
+                addMessage('Sorry, I couldn\'t connect right now. Please check your connection and try again.', false, '🤖', 'AdinavAI');
+            }
+        }
+
+        function addMessage(text, isUser, avatar, sender) {
+            console.log('💬 addMessage called:', { text, isUser, avatar, sender });
+            
+            const messagesArea = document.getElementById('messagesArea');
+            if (!messagesArea) {
+                console.error('❌ Messages area not found!');
+                return;
+            }
+            
+            const time = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message ${isUser ? 'user' : ''}`;
+            
+            messageDiv.innerHTML = `
+                <div class="message-avatar">${avatar}</div>
+                <div class="message-content">
+                    <div class="message-text">${text}</div>
+                    <div class="message-time">${time}</div>
+                    ${!isUser ? '<button class="speaker-btn" onclick="speakMessage(this)" title="Speak this message">🔊</button>' : ''}
+                </div>
+            `;
+            
+            messagesArea.appendChild(messageDiv);
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+            
+            messages.push({ text, isUser, avatar, sender, time });
+            console.log('✅ Message added successfully');
+        }
+
+        function showTyping() {
+            const typingIndicator = document.getElementById('typingIndicator');
+            const messagesArea = document.getElementById('messagesArea');
+            
+            // Move typing indicator to end of messages
+            messagesArea.appendChild(typingIndicator);
+            typingIndicator.style.display = 'flex';
+            messagesArea.scrollTop = messagesArea.scrollHeight;
+            
+            // Play thinking sound
+            playThinkingSound();
+        }
+
+        function hideTyping() {
+            document.getElementById('typingIndicator').style.display = 'none';
+        }
+
+        // Load conversation starter
+        async function loadConversationStarter() {
+            try {
+                const response = await fetch('/api/conversation-starter');
+                const data = await response.json();
+                
+                if (data.starter && messages.length === 0) {
+                    setTimeout(() => {
+                        addMessage(data.starter, false, '🤖', 'AdinavAI');
+                    }, 1000);
+                }
+            } catch (error) {
+                console.log('Could not load conversation starter');
+            }
+        }
+
+        // Textarea auto-resize
+        function setupTextareaAutoResize() {
+            console.log('⚙️ Setting up textarea auto-resize...');
+            
+            const textarea = document.getElementById('messageInput');
+            if (!textarea) {
+                console.error('❌ Message input textarea not found!');
+                return;
+            }
+            
+            console.log('✅ Textarea found, adding event listeners');
+            
+            textarea.addEventListener('input', function() {
+                this.style.height = 'auto';
+                this.style.height = Math.min(this.scrollHeight, 120) + 'px';
+            });
+            
+            textarea.addEventListener('keypress', function(e) {
+                console.log('⌨️ Key pressed in textarea:', e.key);
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    console.log('🚀 Enter pressed, sending message');
+                    e.preventDefault();
+                    sendTextMessage();
+                }
+            });
+            
+            console.log('✅ Textarea event listeners added successfully');
+        }
+
+        // Test multilingual voice - WORKING VERSION
+        function testMultilingualVoice() {
+            const testMessage = "Hello! Audio test is working. Can you hear me clearly?";
+            console.log('🧪 Testing voice with message:', testMessage);
+            
+            // Show visual feedback
+            showVoiceStatus('🧪 Testing audio output...', false);
+            setTimeout(() => hideVoiceStatus(), 3000);
+            
+            // Use simple speech for all devices
+            if (window.isMobile || isMobileDevice()) {
+                console.log('📱 Mobile audio test');
+                simpleMobileSpeech(testMessage);
+            } else {
+                speakText(testMessage);
+            }
+        }
+
+        // Test different languages
+        function testLanguages() {
+            const testMessages = [
+                { text: "Hello, this is English", lang: "en" },
+                { text: "Bonjour, c'est français", lang: "fr" },
+                { text: "Hallo, das ist deutsch", lang: "de" },
+                { text: "नमस्ते, यो नेपाली हो", lang: "ne" }
+            ];
+            
+            console.log('🌐 Testing all supported languages');
+            
+            let currentIndex = 0;
+            const speakNext = () => {
+                if (currentIndex >= testMessages.length) {
+                    console.log('✅ Language test completed');
+                    return;
+                }
+                
+                const message = testMessages[currentIndex];
+                console.log(`🗣️ Testing ${supportedLanguages[message.lang].flag} ${supportedLanguages[message.lang].name}: ${message.text}`);
+                
+                if (window.isMobile || isMobileDevice()) {
+                    forceMobileSpeech(message.text)
+                        .then(() => {
+                            setTimeout(() => {
+                                currentIndex++;
+                                speakNext();
+                            }, 2000);
+                        })
+                        .catch((error) => {
+                            console.error(`❌ Failed to speak ${message.lang}:`, error);
+                            setTimeout(() => {
+                                currentIndex++;
+                                speakNext();
+                            }, 1000);
+                        });
+                } else {
+                    speakText(message.text);
+                    setTimeout(() => {
+                        currentIndex++;
+                        speakNext();
+                    }, 3000);
+                }
+            };
+            
+            speakNext();
+        }
+
+        // SIMPLIFIED mobile audio system
+        function enableMobileAudio() {
+            console.log('📱 SIMPLE mobile audio enable triggered');
+            
+            try {
+                // Step 1: Create and resume audio context
+                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                console.log('📱 Audio context state:', audioContext.state);
+                
+                // Step 2: Force resume if suspended
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().then(() => {
+                        console.log('📱 Audio context resumed');
+                        performSimpleAudioTest();
+                    });
+                } else {
+                    console.log('📱 Audio context already active');
+                    performSimpleAudioTest();
+                }
+                
+            } catch (error) {
+                console.error('📱 Audio context error:', error);
+                performSimpleAudioTest(); // Try anyway
+            }
+        }
+
+        function performSimpleAudioTest() {
+            console.log('📱 Performing SIMPLE audio test');
+            
+            if ('speechSynthesis' in window) {
+                // Cancel any existing speech
+                speechSynthesis.cancel();
+                
+                setTimeout(() => {
+                    const testText = "Audio test successful!";
+                    const utterance = new SpeechSynthesisUtterance(testText);
+                    
+                    // Simple settings
+                    utterance.rate = 1.0;
+                    utterance.volume = 1.0;
+                    utterance.pitch = 1.0;
+                    
+                    // Get any available voice
+                    const voices = speechSynthesis.getVoices();
+                    if (voices.length > 0) {
+                        utterance.voice = voices[0];
+                        console.log('📱 Using voice:', voices[0].name);
+                    }
+                    
+                    utterance.onstart = () => {
+                        console.log('📱 ✅ SIMPLE audio test SUCCESS!');
+                        document.getElementById('mobileAudioBtn').style.background = '#28a745';
+                        document.getElementById('mobileAudioBtn').innerHTML = '<span class="icon">✅</span><span>Working!</span>';
+                        
+                        // Update status
+                        const statusText = document.getElementById('mobileAudioStatusText');
+                        if (statusText) {
+                            statusText.textContent = 'Audio working! Try speaking now.';
+                        }
+                    };
+                    
+                    utterance.onend = () => {
+                        console.log('📱 ✅ Audio test completed');
+                    };
+                    
+                    utterance.onerror = (e) => {
+                        console.error('📱 ❌ SIMPLE audio test failed:', e.error);
+                        document.getElementById('mobileAudioBtn').style.background = '#dc3545';
+                        document.getElementById('mobileAudioBtn').innerHTML = '<span class="icon">❌</span><span>Failed</span>';
+                        
+                        // Try beep fallback
+                        tryBeepSound();
+                    };
+                    
+                    console.log('📱 Attempting speech synthesis...');
+                    speechSynthesis.speak(utterance);
+                    
+                }, 100);
+                
+            } else {
+                console.error('📱 Speech synthesis not supported');
+                document.getElementById('mobileAudioBtn').innerHTML = '<span class="icon">❌</span><span>Not Supported</span>';
+            }
+        }
+
+        function tryBeepSound() {
+            console.log('📱 Trying beep sound fallback');
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.frequency.setValueAtTime(800, audioCtx.currentTime);
+                gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
+                
+                oscillator.start(audioCtx.currentTime);
+                oscillator.stop(audioCtx.currentTime + 0.5);
+                
+                console.log('📱 ✅ Beep sound played - audio context working');
+                document.getElementById('mobileAudioBtn').style.background = '#ffc107';
+                document.getElementById('mobileAudioBtn').innerHTML = '<span class="icon">🔔</span><span>Beep OK</span>';
+                
+            } catch (e) {
+                console.error('📱 ❌ Even beep sound failed:', e);
+                document.getElementById('mobileAudioBtn').innerHTML = '<span class="icon">❌</span><span>No Audio</span>';
+            }
+        }
+
+        // MOBILE-FRIENDLY audio test
+        function simpleAudioTest() {
+            console.log('🧪 Testing basic audio');
+            
+            // For mobile, we need to unlock audio in user interaction context
+            if (isMobileDevice()) {
+                console.log('📱 Mobile device - unlocking audio');
+                
+                // Create audio context and resume it
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    if (audioCtx.state === 'suspended') {
+                        audioCtx.resume().then(() => {
+                            console.log('📱 Audio context resumed');
+                            performAudioTest();
+                        });
+                    } else {
+                        performAudioTest();
+                    }
+                } catch (e) {
+                    console.log('📱 Audio context failed, trying direct speech');
+                    performAudioTest();
+                }
+            } else {
+                performAudioTest();
+            }
+        }
+
+        function performAudioTest() {
+            console.log('🎤 Performing audio test');
+            
+            if (!('speechSynthesis' in window)) {
+                console.log('❌ Speech synthesis not supported');
+                return;
+            }
+            
+            // Cancel any existing speech
+            speechSynthesis.cancel();
+            
+            // Wait and try basic speech - immediate for mobile
+            const text = "Audio test working";
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.volume = 1.0;
+            speech.rate = 1.0;
+            speech.pitch = 1.0;
+            
+            speech.onstart = () => {
+                console.log('✅ Audio test started');
+                document.body.style.borderTop = '3px solid #28a745';
+            };
+            
+            speech.onend = () => {
+                console.log('✅ Audio test completed');
+                document.body.style.borderTop = 'none';
+            };
+            
+            speech.onerror = (e) => {
+                console.log('❌ Audio test error:', e.error);
+                document.body.style.borderTop = 'none';
+            };
+            
+            // Speak immediately - mobile needs this in user interaction context
+            speechSynthesis.speak(speech);
+            console.log('🎤 Speech synthesis started');
+        }
+
+        // BASIC speech function - as simple as possible
+        function basicSpeak(text) {
+            console.log('🔊 BASIC SPEAK:', text);
+            
+            if (!('speechSynthesis' in window)) {
+                console.log('No speech synthesis');
+                return;
+            }
+            
+            // Cancel existing
+            speechSynthesis.cancel();
+            
+            // Create basic utterance
+            setTimeout(() => {
+                const utterance = new SpeechSynthesisUtterance(text);
+                utterance.volume = 1.0;
+                utterance.rate = 0.9;
+                
+                utterance.onstart = () => {
+                    console.log('✅ Basic speech started');
+                    document.body.style.borderTop = '2px solid green';
+                };
+                
+                utterance.onend = () => {
+                    console.log('✅ Basic speech ended');
+                    document.body.style.borderTop = 'none';
+                };
+                
+                utterance.onerror = (e) => {
+                    console.log('❌ Basic speech error:', e.error);
+                    document.body.style.borderTop = 'none';
+                };
+                
+                // Just speak with default voice
+                speechSynthesis.speak(utterance);
+                console.log('Basic speech attempted');
+            }, 200);
+        }
+
+        // Test French speech
+        function testFrenchSpeech() {
+            console.log('🇫🇷 Testing French speech');
+            
+            // Switch to French temporarily
+            const originalLang = currentVoiceLanguage;
+            currentVoiceLanguage = 'fr-FR';
+            
+            // Test French phrase
+            const frenchText = "Bonjour, ceci est un test en français";
+            
+            if (isMobileDevice()) {
+                performAudioTest(frenchText);
+            } else {
+                basicSpeak(frenchText);
+            }
+            
+            // Show feedback
+            showVoiceStatus('🇫🇷 Testing French speech', false);
+            setTimeout(() => {
+                hideVoiceStatus();
+                currentVoiceLanguage = originalLang; // Restore original language
+            }, 3000);
+        }
+
+        function performAudioTest(customText = null) {
+            console.log('🎤 Performing audio test');
+            
+            if (!('speechSynthesis' in window)) {
+                console.log('❌ Speech synthesis not supported');
+                return;
+            }
+            
+            // Cancel any existing speech
+            speechSynthesis.cancel();
+            
+            // Use custom text or default
+            const text = customText || "Audio test working";
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.volume = 1.0;
+            speech.rate = 1.0;
+            speech.pitch = 1.0;
+            
+            // For French, try to find French voice
+            if (currentVoiceLanguage === 'fr-FR') {
+                const voices = speechSynthesis.getVoices();
+                const frenchVoice = voices.find(v => v.lang.startsWith('fr'));
+                if (frenchVoice) {
+                    speech.voice = frenchVoice;
+                    console.log('🇫🇷 Using French voice:', frenchVoice.name);
+                }
+            }
+            
+            speech.onstart = () => {
+                console.log('✅ Audio test started');
+                document.body.style.borderTop = '3px solid #28a745';
+            };
+            
+            speech.onend = () => {
+                console.log('✅ Audio test completed');
+                document.body.style.borderTop = 'none';
+            };
+            
+            speech.onerror = (e) => {
+                console.log('❌ Audio test error:', e.error);
+                document.body.style.borderTop = 'none';
+            };
+            
+            // Speak immediately
+            speechSynthesis.speak(speech);
+            console.log('🎤 Speech synthesis started');
+        }
+
+        // SIMPLE 2-language system: English + French
+        let currentVoiceLanguage = 'en-US';
+        const voiceLanguages = [
+            { code: 'en-US', name: 'English', flag: '🇺🇸', abbr: 'EN' },
+            { code: 'fr-FR', name: 'French', flag: '🇫🇷', abbr: 'FR' }
+        ];
+        let currentLangIndex = 0;
+
+        function switchRecognitionLanguage() {
+            currentLangIndex = (currentLangIndex + 1) % voiceLanguages.length;
+            const selectedLang = voiceLanguages[currentLangIndex];
+            currentVoiceLanguage = selectedLang.code;
+            
+            console.log(`🌐 Switched voice recognition to: ${selectedLang.flag} ${selectedLang.name}`);
+            
+            // Update button text and make it more visible
+            const langBtn = document.getElementById('currentLangText');
+            const mobileBtn = document.getElementById('mobileLangBtn');
+            
+            if (langBtn) langBtn.textContent = selectedLang.abbr;
+            if (mobileBtn) {
+                mobileBtn.title = `Voice Recognition: ${selectedLang.name}`;
+                mobileBtn.style.background = '#007bff'; // Blue when switched
+                setTimeout(() => {
+                    mobileBtn.style.background = ''; // Back to normal
+                }, 1000);
+            }
+            
+            // Show clear feedback
+            showVoiceStatus(`🌐 Voice Recognition: ${selectedLang.flag} ${selectedLang.name}`, false);
+            setTimeout(hideVoiceStatus, 3000);
+            
+            // Console log for debugging
+            console.log(`✅ Language switched to: ${selectedLang.name} (${selectedLang.code})`);
+        }
+
+        // SIMPLE mobile speech - reliable and direct
+        function simpleMobileSpeech(text) {
+            console.log('📱 SIMPLE mobile speech:', text);
+            
+            if ('speechSynthesis' in window) {
+                // Cancel any existing speech
+                speechSynthesis.cancel();
+                
+                // Wait a moment then speak
+                setTimeout(() => {
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    
+                    // Simple settings
+                    utterance.rate = 1.0;
+                    utterance.volume = 1.0;
+                    utterance.pitch = 1.0;
+                    
+                    // Detect language and set voice
+                    const detectedLang = detectAndSetLanguage(text);
+                    const voices = speechSynthesis.getVoices();
+                    
+                    // Find voice for language
+                    let selectedVoice = voices.find(v => v.lang.startsWith(detectedLang));
+                    if (!selectedVoice) {
+                        const baseCode = detectedLang.split('-')[0];
+                        selectedVoice = voices.find(v => v.lang.startsWith(baseCode));
+                    }
+                    if (!selectedVoice && voices.length > 0) {
+                        selectedVoice = voices[0]; // Fallback to any voice
+                    }
+                    
+                    if (selectedVoice) {
+                        utterance.voice = selectedVoice;
+                        console.log(`📱 Using voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+                    }
+                    
+                    utterance.onstart = () => {
+                        console.log('📱 ✅ Simple mobile speech started');
+                        document.body.style.borderTop = '3px solid #28a745';
+                    };
+                    
+                    utterance.onend = () => {
+                        console.log('📱 ✅ Simple mobile speech completed');
+                        document.body.style.borderTop = 'none';
+                    };
+                    
+                    utterance.onerror = (e) => {
+                        console.error('📱 ❌ Simple mobile speech failed:', e.error);
+                        document.body.style.borderTop = 'none';
+                        
+                        // Try even simpler approach
+                        setTimeout(() => {
+                            console.log('📱 Trying ultra-simple speech...');
+                            const simpleUtterance = new SpeechSynthesisUtterance(text);
+                            speechSynthesis.speak(simpleUtterance);
+                        }, 500);
+                    };
+                    
+                    console.log('📱 Speaking now...');
+                    speechSynthesis.speak(utterance);
+                    
+                }, 200);
+            } else {
+                console.error('📱 Speech synthesis not available');
+            }
+        }
+
+        // Test voice functionality - MOBILE ENHANCED
+        function testVoice() {
+            const testMessage = "Hello! I'm AdinavAI and this is a voice test. Can you hear me clearly?";
+            console.log('🧪 Testing voice with message:', testMessage);
+            
+            // Show visual feedback
+            showVoiceStatus('🧪 Testing voice output...', false);
+            setTimeout(() => hideVoiceStatus(), 3000);
+            
+            // Mobile-specific test
+            if (window.isMobile || isMobileDevice()) {
+                console.log('📱 Mobile device detected - using mobile speech test');
+                forceMobileSpeech(testMessage);
+            } else {
+                // Test voice output
+                speakText(testMessage);
+            }
+        }
+
+        // Force mobile speech - MULTILINGUAL MOBILE APPROACH
+        function forceMobileSpeech(text) {
+            console.log('📱 FORCING mobile speech for:', text);
+            
+            return new Promise((resolve, reject) => {
+                try {
+                    // Detect language first
+                    const detectedLang = detectAndSetLanguage(text);
+                    console.log(`📱 Mobile speech using ${supportedLanguages[detectedLang].flag} ${supportedLanguages[detectedLang].name}`);
+                    
+                    // Multiple attempts to enable audio
+                    const attempts = [
+                        // Attempt 1: Direct speech synthesis with proper language
+                        () => {
+                            console.log('📱 Attempt 1: Aggressive mobile speech synthesis');
+                            if ('speechSynthesis' in window) {
+                                // Cancel everything first
+                                speechSynthesis.cancel();
+                                
+                                // Wait a moment for cancellation to complete
+                                setTimeout(() => {
+                                    const utterance = new SpeechSynthesisUtterance(text);
+                                    utterance.rate = 1.0;
+                                    utterance.pitch = 1.0;
+                                    utterance.volume = 1.0;
+                                    
+                                    // Find appropriate voice for language
+                                    const voices = speechSynthesis.getVoices();
+                                    console.log(`📱 Available voices: ${voices.length}`);
+                                    
+                                    let selectedVoice = voices.find(v => v.lang.startsWith(detectedLang));
+                                    if (!selectedVoice) {
+                                        // Try base language (e.g., 'fr' instead of 'fr-FR')
+                                        const baseCode = detectedLang.split('-')[0];
+                                        selectedVoice = voices.find(v => v.lang.startsWith(baseCode));
+                                    }
+                                    if (!selectedVoice && voices.length > 0) {
+                                        selectedVoice = voices[0]; // Any voice as fallback
+                                    }
+                                    
+                                    if (selectedVoice) {
+                                        utterance.voice = selectedVoice;
+                                        console.log(`📱 Using mobile voice: ${selectedVoice.name} (${selectedVoice.lang})`);
+                                    }
+                                    
+                                    utterance.onstart = () => {
+                                        console.log('📱 ✅ Mobile speech started successfully!');
+                                        document.body.style.borderTop = '4px solid #28a745';
+                                        resolve('direct');
+                                    };
+                                    
+                                    utterance.onend = () => {
+                                        console.log('📱 ✅ Mobile speech completed successfully!');
+                                        document.body.style.borderTop = 'none';
+                                    };
+                                    
+                                    utterance.onerror = (e) => {
+                                        console.log('📱 ❌ Direct speech failed:', e.error);
+                                        document.body.style.borderTop = 'none';
+                                    };
+                                    
+                                    // Try to speak immediately
+                                    console.log('📱 Attempting to speak...');
+                                    speechSynthesis.speak(utterance);
+                                    
+                                    // Force check after a moment
+                                    setTimeout(() => {
+                                        if (!speechSynthesis.speaking) {
+                                            console.log('📱 Speech not started, trying next method...');
+                                        }
+                                    }, 1000);
+                                }, 100);
+                            }
+                        },
+                        
+                        // Attempt 2: Audio element with data URL
+                        () => {
+                            console.log('📱 Attempt 2: Audio element fallback');
+                            try {
+                                // Create a beep sound as fallback
+                                const audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                                const oscillator = audioContext.createOscillator();
+                                const gainNode = audioContext.createGain();
+                                
+                                oscillator.connect(gainNode);
+                                gainNode.connect(audioContext.destination);
+                                
+                                oscillator.frequency.setValueAtTime(800, audioContext.currentTime);
+                                gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+                                
+                                oscillator.start(audioContext.currentTime);
+                                oscillator.stop(audioContext.currentTime + 0.5);
+                                
+                                console.log('📱 Audio beep played as fallback');
+                                resolve('beep');
+                                
+                            } catch (e) {
+                                console.error('📱 Audio element fallback failed:', e);
+                            }
+                        },
+                        
+                        // Attempt 3: Retry speech synthesis after delay
+                        () => {
+                            console.log('📱 Attempt 3: Delayed speech retry');
+                            setTimeout(() => {
+                                if ('speechSynthesis' in window) {
+                                    speechSynthesis.cancel();
+                                    
+                                    // Wait for voices and try again
+                                    const retrySpeak = () => {
+                                        const voices = speechSynthesis.getVoices();
+                                        console.log('📱 Retry with voices:', voices.length);
+                                        
+                                        const utterance = new SpeechSynthesisUtterance(text);
+                                        utterance.rate = 0.8;
+                                        utterance.volume = 1.0;
+                                        
+                                        // Use first available voice
+                                        if (voices.length > 0) {
+                                            utterance.voice = voices[0];
+                                            console.log('📱 Using voice:', voices[0].name);
+                                        }
+                                        
+                                        utterance.onstart = () => {
+                                            console.log('📱 Delayed speech started!');
+                                            resolve('delayed');
+                                        };
+                                        
+                                        utterance.onerror = (e) => {
+                                            console.error('📱 Delayed speech failed:', e.error);
+                                            reject(e);
+                                        };
+                                        
+                                        speechSynthesis.speak(utterance);
+                                    };
+                                    
+                                    if (speechSynthesis.getVoices().length === 0) {
+                                        speechSynthesis.addEventListener('voiceschanged', retrySpeak, { once: true });
+                                    } else {
+                                        retrySpeak();
+                                    }
+                                }
+                            }, 500);
+                        }
+                    ];
+                    
+                    // Try each method in sequence
+                    attempts.forEach((attempt, index) => {
+                        setTimeout(() => attempt(), index * 1000);
+                    });
+                    
+                } catch (error) {
+                    console.error('📱 Force mobile speech error:', error);
+                    reject(error);
+                }
+            });
+        }
+        
+        // Comprehensive audio diagnostics - MOBILE ENHANCED
+        function runAudioDiagnostics() {
+            console.log('🔬 === MOBILE AUDIO DIAGNOSTICS ===');
+            
+            // Mobile detection
+            console.log('📱 Mobile Device:', window.isMobile || isMobileDevice() ? 'YES' : 'NO');
+            console.log('📱 User Agent:', navigator.userAgent);
+            console.log('📱 Window Width:', window.innerWidth);
+            
+            // Audio Context check
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                if (AudioContext) {
+                    const audioContext = new AudioContext();
+                    console.log('🎵 AudioContext State:', audioContext.state);
+                    console.log('🎵 AudioContext Sample Rate:', audioContext.sampleRate);
+                    audioContext.close();
+                } else {
+                    console.log('❌ AudioContext: NOT SUPPORTED');
+                }
+            } catch (e) {
+                console.error('❌ AudioContext Error:', e.message);
+            }
+            
+            // Check speech synthesis support
+            if ('speechSynthesis' in window) {
+                console.log('✅ Speech Synthesis: SUPPORTED');
+                console.log('📊 Speech Synthesis Queue Length:', speechSynthesis.pending ? 'Has pending' : 'Empty');
+                console.log('🎮 Speech Synthesis Speaking:', speechSynthesis.speaking ? 'YES' : 'NO');
+                console.log('⏸️ Speech Synthesis Paused:', speechSynthesis.paused ? 'YES' : 'NO');
+            } else {
+                console.log('❌ Speech Synthesis: NOT SUPPORTED');
+                return;
+            }
+            
+            // List all voices
+            const voices = speechSynthesis.getVoices();
+            console.log('🎭 Total voices available:', voices.length);
+            
+            if (voices.length > 0) {
+                console.log('🔍 Voice details:');
+                voices.forEach((voice, i) => {
+                    console.log(`  ${i+1}. "${voice.name}" (${voice.lang}) ${voice.localService ? '[LOCAL]' : '[REMOTE]'} ${voice.default ? '[DEFAULT]' : ''}`);
+                });
+                
+                // Find recommended voices
+                const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+                console.log('🇺🇸 English voices found:', englishVoices.length);
+                
+                const recommendedVoices = voices.filter(v => 
+                    v.lang.startsWith('en') && 
+                    (v.name.includes('Google') || v.name.includes('Microsoft') || v.name.includes('Samantha'))
+                );
+                console.log('⭐ Recommended voices:', recommendedVoices.map(v => v.name));
+            }
+            
+            // Test basic TTS
+            console.log('🧪 Running basic TTS test...');
+            const testUtterance = new SpeechSynthesisUtterance('Testing audio output now');
+            testUtterance.volume = 1.0;
+            testUtterance.rate = 1.0;
+            testUtterance.pitch = 1.0;
+            
+            testUtterance.onstart = () => console.log('✅ TTS Test: Started successfully');
+            testUtterance.onend = () => console.log('✅ TTS Test: Completed successfully'); 
+            testUtterance.onerror = (e) => console.log('❌ TTS Test: Failed with error', e);
+            
+            speechSynthesis.speak(testUtterance);
+            
+            console.log('🔬 === DIAGNOSTICS COMPLETE ===');
+        }
+
+        // Toggle auto-speak functionality
+        function toggleAutoSpeak() {
+            autoSpeakEnabled = !autoSpeakEnabled;
+            const btn = document.getElementById('autoSpeakBtn');
+            
+            if (autoSpeakEnabled) {
+                btn.innerHTML = '🔊 Auto';
+                btn.className = 'btn btn-voice-toggle';
+                btn.title = 'Auto-speak enabled - Click to disable';
+                console.log('✅ Auto-speak enabled');
+            } else {
+                btn.innerHTML = '🔇 Off';
+                btn.className = 'btn btn-voice-toggle disabled';
+                btn.title = 'Auto-speak disabled - Click to enable';
+                console.log('❌ Auto-speak disabled');
+                // Stop any current speech
+                if ('speechSynthesis' in window) {
+                    speechSynthesis.cancel();
+                }
+            }
+            
+            // Update mobile controls
+            updateMobileControlsState();
+        }
+
+        // Logout function
+        function logout() {
+            if (confirm('Are you sure you want to logout?')) {
+                window.location.href = '/logout';
+            }
+        }
+
+        // Detect language of text
+        function detectLanguage(text) {
+            // Simple language detection based on common words/patterns
+            const frenchWords = /\b(je|tu|il|elle|nous|vous|ils|elles|le|la|les|un|une|des|de|du|avec|pour|dans|sur|par|comment|puis|aider|bonjour|salut|oui|non|merci|français)\b/gi;
+            const spanishWords = /\b(el|la|los|las|un|una|de|en|por|para|con|como|hola|gracias|español|sí|no)\b/gi;
+            const germanWords = /\b(der|die|das|ein|eine|ich|du|er|sie|wir|ihr|mit|für|auf|hallo|danke|deutsch|ja|nein)\b/gi;
+            
+            const frenchMatches = (text.match(frenchWords) || []).length;
+            const spanishMatches = (text.match(spanishWords) || []).length;
+            const germanMatches = (text.match(germanWords) || []).length;
+            
+            if (frenchMatches > 1 || text.includes('français') || text.includes('ça va')) {
+                return 'fr';
+            } else if (spanishMatches > 1 || text.includes('español')) {
+                return 'es';
+            } else if (germanMatches > 1 || text.includes('deutsch')) {
+                return 'de';
+            }
+            
+            return 'en'; // Default to English
+        }
+
+        // Clean text for speech (remove emojis and formatting)
+        function cleanTextForSpeech(text) {
+            // Remove emojis and special characters
+            let cleanText = text.replace(/[\u{1F600}-\u{1F64F}]|[\u{1F300}-\u{1F5FF}]|[\u{1F680}-\u{1F6FF}]|[\u{1F1E0}-\u{1F1FF}]|[\u{2600}-\u{26FF}]|[\u{2700}-\u{27BF}]/gu, '');
+            
+            // Remove markdown formatting
+            cleanText = cleanText.replace(/\*\*(.*?)\*\*/g, '$1'); // Bold
+            cleanText = cleanText.replace(/\*(.*?)\*/g, '$1'); // Italic
+            cleanText = cleanText.replace(/`(.*?)`/g, '$1'); // Code
+            
+            // Remove extra whitespace and line breaks
+            cleanText = cleanText.replace(/\s+/g, ' ').trim();
+            
+            // Remove common emoji descriptions that might slip through
+            cleanText = cleanText.replace(/waving hand|star|sparkles|robot|house|thumbs up/gi, '');
+            
+            return cleanText;
+        }
+
+        // Simple backup voice function 
+        function speakTextSimple(text) {
+            if ('speechSynthesis' in window) {
+                try {
+                    speechSynthesis.cancel();
+                    const cleanText = cleanTextForSpeech(text);
+                    if (!cleanText.trim()) return;
+                    
+                    console.log('🔧 Using simple TTS:', cleanText);
+                    
+                    const utterance = new SpeechSynthesisUtterance(cleanText);
+                    utterance.rate = 0.9;
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+                    
+                    utterance.onstart = () => console.log('🔊 Simple TTS started');
+                    utterance.onend = () => console.log('✅ Simple TTS completed');
+                    utterance.onerror = (e) => console.error('❌ Simple TTS error:', e);
+                    
+                    speechSynthesis.speak(utterance);
+                } catch (error) {
+                    console.error('Simple TTS failed:', error);
+                }
+            }
+        }
+
+        // Mobile-specific speech function
+        function tryMobileSpeech(text) {
+            if ('speechSynthesis' in window) {
+                try {
+                    console.log('📱 Trying mobile speech for:', text.substring(0, 50) + '...');
+                    
+                    // Cancel any existing speech
+                    speechSynthesis.cancel();
+                    
+                    // Create utterance with mobile-optimized settings
+                    const utterance = new SpeechSynthesisUtterance(text);
+                    utterance.rate = 1.0;  // Normal speed for mobile
+                    utterance.pitch = 1.0;
+                    utterance.volume = 1.0;
+                    
+                    // Find any available voice
+                    const voices = speechSynthesis.getVoices();
+                    if (voices.length > 0) {
+                        // Prefer local voices on mobile
+                        const localVoice = voices.find(v => v.localService && v.lang.startsWith('en'));
+                        if (localVoice) {
+                            utterance.voice = localVoice;
+                            console.log('📱 Using local mobile voice:', localVoice.name);
+                        } else {
+                            // Use any English voice
+                            const englishVoice = voices.find(v => v.lang.startsWith('en'));
+                            if (englishVoice) {
+                                utterance.voice = englishVoice;
+                                console.log('📱 Using mobile voice:', englishVoice.name);
+                            }
+                        }
+                    }
+                    
+                    utterance.onstart = () => {
+                        console.log('📱 Mobile speech started');
+                        document.body.style.borderTop = '3px solid #007bff';
+                    };
+                    
+                    utterance.onend = () => {
+                        console.log('📱 Mobile speech completed');
+                        document.body.style.borderTop = 'none';
+                    };
+                    
+                    utterance.onerror = (e) => {
+                        console.error('📱 Mobile speech error:', e.error);
+                        document.body.style.borderTop = 'none';
+                    };
+                    
+                    // Speak immediately - mobile requires this to be in user interaction context
+                    speechSynthesis.speak(utterance);
+                    console.log('📱 Mobile speech initiated');
+                    
+                } catch (error) {
+                    console.error('📱 Mobile speech failed:', error);
+                }
+            }
+        }
+
+        // Voice output (text-to-speech) - MOBILE COMPATIBLE VERSION
+        function speakText(text) {
+            if ('speechSynthesis' in window) {
+                try {
+                    // Cancel any ongoing speech first
+                    speechSynthesis.cancel();
+                    
+                    // Clean the text first
+                    const cleanText = cleanTextForSpeech(text);
+                    
+                    if (!cleanText.trim()) {
+                        console.log('No text to speak after cleaning');
+                        return;
+                    }
+                    
+                    console.log('🔊 SPEAKING:', cleanText);
+                    
+                    // Use basic speech for everyone
+                    console.log('🔊 Basic speech for all devices');
+                    basicSpeak(cleanText);
+                    return;
+                    
+                    // Wait for voices to be loaded
+                    const speakNow = () => {
+                        const utterance = new SpeechSynthesisUtterance(cleanText);
+                        
+                        // Set basic parameters
+                        utterance.rate = 0.9;
+                        utterance.pitch = 1.0;
+                        utterance.volume = 1.0;
+                        
+                        // Detect language from text and find appropriate voice
+                        const detectedLang = detectAndSetLanguage(cleanText);
+                        const langCode = supportedLanguages[detectedLang].code;
+                        
+                        const voices = speechSynthesis.getVoices();
+                        console.log(`🔊 Available voices: ${voices.length} for language: ${supportedLanguages[detectedLang].flag} ${supportedLanguages[detectedLang].name}`);
+                        
+                        // Language-specific voice preferences
+                        const voicePreferences = {
+                            'en-US': ['Google US English Female', 'Google US English Male', 'Microsoft Aria Online', 'Microsoft David Desktop', 'Alex', 'Samantha'],
+                            'fr-FR': ['Google français Female', 'Google français Male', 'Microsoft Hortense Desktop', 'Thomas', 'Amélie'],
+                            'de-DE': ['Google Deutsch Female', 'Google Deutsch Male', 'Microsoft Hedda Desktop', 'Anna', 'Stefan'],
+                            'ne-NP': ['Google नेपाली Female', 'Google नेपाली Male', 'Nepali Voice']
+                        };
+                        
+                        const preferredVoices = voicePreferences[langCode] || voicePreferences['en-US'];
+                        
+                        let selectedVoice = null;
+                        
+                        // Try to find preferred voice for the detected language
+                        for (const voiceName of preferredVoices) {
+                            selectedVoice = voices.find(v => v.name.includes(voiceName) && v.lang.startsWith(detectedLang));
+                            if (selectedVoice) {
+                                console.log(`✅ Selected preferred ${supportedLanguages[detectedLang].flag} voice:`, selectedVoice.name);
+                                break;
+                            }
+                        }
+                        
+                        // Fallback to any voice for the detected language
+                        if (!selectedVoice) {
+                            selectedVoice = voices.find(v => v.lang.startsWith(detectedLang));
+                            if (selectedVoice) {
+                                console.log(`✅ Selected fallback ${supportedLanguages[detectedLang].flag} voice:`, selectedVoice.name);
+                            } else {
+                                console.log(`⚠️ No voice found for ${supportedLanguages[detectedLang].name}, trying similar languages`);
+                                
+                                // Try similar language codes (e.g., fr-CA for fr-FR)
+                                const langBase = detectedLang.split('-')[0];
+                                selectedVoice = voices.find(v => v.lang.startsWith(langBase));
+                                if (selectedVoice) {
+                                    console.log(`✅ Selected similar language voice:`, selectedVoice.name);
+                                }
+                            }
+                        }
+                        
+                        // Final fallback to English if nothing found
+                        if (!selectedVoice) {
+                            selectedVoice = voices.find(v => v.lang.startsWith('en')) || voices[0];
+                            console.log('✅ Selected final English fallback voice:', selectedVoice?.name || 'default');
+                        }
+                        
+                        if (selectedVoice) {
+                            utterance.voice = selectedVoice;
+                        }
+                        
+                        // Event handlers
+                        utterance.onstart = () => {
+                            console.log('🎤 Speech started');
+                            // Show visual feedback
+                            document.body.style.borderTop = '3px solid #28a745';
+                        };
+                        
+                        utterance.onend = () => {
+                            console.log('✅ Speech completed');
+                            document.body.style.borderTop = 'none';
+                        };
+                        
+                        utterance.onerror = (event) => {
+                            console.error('❌ Speech error:', event.error, event);
+                            document.body.style.borderTop = 'none';
+                            
+                            // Mobile-specific error handling
+                            if (window.isMobile) {
+                                console.log('📱 Mobile speech error - trying mobile fallback');
+                                setTimeout(() => {
+                                    tryMobileSpeech(cleanText);
+                                }, 100);
+                            } else {
+                                // Try simple fallback
+                                setTimeout(() => {
+                                    console.log('🔄 Trying simple fallback...');
+                                    speakTextSimple(text);
+                                }, 100);
+                            }
+                        };
+                        
+                        // Speak with retry logic
+                        try {
+                            // Mobile requires immediate user interaction context
+                            if (window.isMobile) {
+                                // Ensure we're in a user interaction context
+                                setTimeout(() => {
+                                    speechSynthesis.speak(utterance);
+                                    console.log('📱 Mobile speech synthesis started');
+                                }, 0);
+                            } else {
+                                speechSynthesis.speak(utterance);
+                                console.log('📢 Speech synthesis started');
+                            }
+                        } catch (error) {
+                            console.error('Speech synthesis failed:', error);
+                            speakTextSimple(text);
+                        }
+                    };
+                    
+                    // Load voices and speak
+                    const voices = speechSynthesis.getVoices();
+                    if (voices.length === 0) {
+                        // Wait for voices to load
+                        const handleVoicesChanged = () => {
+                            speechSynthesis.removeEventListener('voiceschanged', handleVoicesChanged);
+                            setTimeout(speakNow, 100);
+                        };
+                        speechSynthesis.addEventListener('voiceschanged', handleVoicesChanged);
+                    } else {
+                        speakNow();
+                    }
+                    
+                } catch (error) {
+                    console.error('Voice synthesis error:', error);
+                    speakTextSimple(text);
+                }
+            } else {
+                console.error('Speech synthesis not supported');
+            }
+        }
+        
+        // Play thinking sound
+        function playThinkingSound() {
+            // Create a subtle thinking beep
+            if ('AudioContext' in window) {
+                try {
+                    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                    const oscillator = audioCtx.createOscillator();
+                    const gainNode = audioCtx.createGain();
+                    
+                    oscillator.connect(gainNode);
+                    gainNode.connect(audioCtx.destination);
+                    
+                    oscillator.frequency.value = 800; // Pleasant frequency
+                    gainNode.gain.value = 0.1; // Low volume
+                    
+                    oscillator.start();
+                    oscillator.stop(audioCtx.currentTime + 0.1); // Very brief beep
+                } catch (error) {
+                    console.log('Audio not available');
+                }
+            }
+        }
+
+        // Speak a specific message
+        function speakMessage(button) {
+            const messageText = button.parentElement.querySelector('.message-text').textContent;
+            
+            // Stop any current speech
+            if ('speechSynthesis' in window) {
+                speechSynthesis.cancel();
+            }
+            
+            // Add speaking animation
+            button.classList.add('speaking');
+            
+            // Use browser speech synthesis first (immediate)
+            if ('speechSynthesis' in window) {
+                const utterance = new SpeechSynthesisUtterance(messageText);
+                utterance.rate = 0.9;
+                utterance.pitch = 1;
+                
+                utterance.onend = function() {
+                    button.classList.remove('speaking');
+                };
+                
+                utterance.onerror = function() {
+                    button.classList.remove('speaking');
+                };
+                
+                speechSynthesis.speak(utterance);
+            }
+            
+            // Also try server-generated audio (higher quality)
+            tryServerTTS(messageText, button);
+        }
+
+        // Try server-generated TTS for better quality
+        async function tryServerTTS(text, button) {
+            try {
+                const response = await fetch('/api/text-to-voice', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({ text })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success && data.audio_url) {
+                    // Play server-generated audio
+                    const audio = new Audio(data.audio_url);
+                    audio.play().catch(e => console.log('Audio playback failed:', e));
+                }
+            } catch (error) {
+                console.log('Server TTS not available, using browser TTS');
+            }
+        }
+    </script>
+</body>
+</html>
